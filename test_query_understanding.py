@@ -23,7 +23,37 @@ from query_understanding import understand_query
 # ]
 
 test_queries = [
-    ""
+    "Which projects have the highest number of listed assets for lease vs sale?"
+    # "What is the distribution of assets per project and asset type?",
+    # "How many lease listings and sale listings exist for each project?",
+    # "Which project has the highest occupancy rate?",
+    # "What is the average carpet area of assets per project?",
+    # "Which assets currently have active tenants and which are vacant?",
+    # "What is the tenant distribution across different projects?",
+    # "What is the average lease duration per asset type?",
+    # "Which projects have the highest number of tenants?",
+    # "How many lease transactions occurred per project?",
+    # "Which amenities are most common across assets?",
+    # "What is the distribution of amenities across projects?",
+    # "Which projects provide the highest number of amenities?",
+    # "What percentage of assets have premium amenities?",
+    # "Which assets have the highest number of sale negotiations?",
+    # "What is the conversion rate from sale listing → sale transaction?",
+    # "What is the average negotiation duration before a sale transaction?",
+    # "Which projects generate the highest sale value?",
+    # "What is the total payment received per project?",
+    # "What is the payment trend for lease transactions over time?",
+    # "Which tenants contribute the highest rental revenue?",
+    # "What is the payment method distribution for lease payments?",
+    # "What percentage of assets have completed verification documents?",
+    # "Which document types are most commonly submitted?",
+    # "Which projects have the highest number of verified assets?",
+    # "What is the conversion rate from listing leads to tenants?",
+    # "Which projects generate the most leads?",
+    # "What is the average time taken to convert a lead to a tenant?",
+    # "Which asset type generates the highest revenue?",
+    # "What is the distribution of asset types across projects?",
+    # "What is the average lease value per asset type?"
 ]
 for i, q in enumerate(test_queries):
     print(f"--- Test {i+1} ---")

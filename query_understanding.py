@@ -155,6 +155,7 @@ def understand_query(query: str) -> dict:
             if key not in result_dict:
                 raise ValueError(f"Missing key in LLM output: {key}")
                 
+        # return result_dict, response, json_string, outputs
         return result_dict
 
     except Exception as e:
