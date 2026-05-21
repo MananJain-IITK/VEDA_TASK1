@@ -22,8 +22,8 @@ from query_understanding import understand_query
 #     "Customers with no transactions in the last 30 days"
 # ]
 
-test_queries = [
-    "Which projects have the highest number of listed assets for lease vs sale?"
+# test_queries = [
+    # "Which projects have the highest number of listed assets for lease vs sale?",
     # "What is the distribution of assets per project and asset type?",
     # "How many lease listings and sale listings exist for each project?",
     # "Which project has the highest occupancy rate?",
@@ -54,6 +54,10 @@ test_queries = [
     # "Which asset type generates the highest revenue?",
     # "What is the distribution of asset types across projects?",
     # "What is the average lease value per asset type?"
+# ]
+
+test_queries = [
+    ""
 ]
 for i, q in enumerate(test_queries):
     print(f"--- Test {i+1} ---")
