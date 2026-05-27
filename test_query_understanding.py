@@ -57,7 +57,7 @@ from query_understanding import understand_query
 # ]
 
 test_queries = [
-    ""
+    "Hello"
 ]
 for i, q in enumerate(test_queries):
     print(f"--- Test {i+1} ---")
