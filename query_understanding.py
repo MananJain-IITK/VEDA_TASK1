@@ -136,7 +136,7 @@ class QuerySession:
 
             <custom_rules>
             1. DOMAIN CHECK: You ONLY process queries about business data (transactions, customers, sales, fraud, etc.). IF the user asks a general knowledge question (e.g., "What is money?"), makes small talk, or asks something outside this domain, you MUST set "needs_clarification": true.
-            2. SPELL AND GRAMMAR CHECK: If the query has simple spelling and grammar errors. Make REASONABLE correction BUT if the errors are major, set "needs_clarification": true. 
+            2. SPELL AND GRAMMAR CHECK: If the query has simple spelling and grammar errors. Make REASONABLE correction and move forward. BUT if the errors are major, set "needs_clarification": true. 
             3. AMBIGUITY: IF the query is incomplete, vague, or fewer than 3 words (except "total sales"), set "needs_clarification": true.
             4. OUTPUT: Output raw JSON only. Do NOT wrap in ```json tags.
             </custom_rules>
@@ -283,6 +283,7 @@ class QuerySession:
                 json_string = match.group(0)
                 
             result_dict = json.loads(json_string)
+            # temp_dict = result_dict
             temporal_params = result_dict.get("temporal_filter")
 
             if temporal_params:
@@ -293,7 +294,9 @@ class QuerySession:
                 if key not in result_dict:
                     raise ValueError(f"Missing key in LLM output: {key}")
                     
+            # return result_dict, temp_dict
             return result_dict
+
 
         except Exception as e:
             return self.fallback(f"System processing error: {str(e)}")
@@ -326,8 +329,11 @@ if __name__ == "__main__":
                 break
                 
             if user_input.strip() and session.is_active:
+                # result, temp_result = session.understand_query(user_input)
+                # print(json.dumps(result,temp_result, indent=2))
                 result = session.understand_query(user_input)
                 print(json.dumps(result, indent=2))
+                
                 
     except KeyboardInterrupt:
         session.kill_session()
