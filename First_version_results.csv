@@ -1,0 +1,51 @@
+Query,Execution_Time_Sec,Intent,Complexity,start_date,end_date,Needs_Clarification,Clarification_Reason,Entities_Extracted
+List all customers in the European region,13.991,SELECT,simple,,,False,,"customers, region"
+Display the transaction history for the fraud department,13.715,SELECT,simple,,,False,,"fraud, transaction_history"
+Total fraud amount by transaction type last quarter,22.865,SELECT,simple,,,True,System processing error: relativedelta.__init__() got an unexpected keyword argument 'quarters',
+What is the sum of all international sales this year,21.59,AGGREGATE,simple,2026-01-01,2026-12-31,False,,international sales
+Show total revenue per customer segment,15.33,AGGREGATE,medium,,,False,,"revenue, customer segment"
+Total refunds processed by the system last week,21.49,AGGREGATE,simple,2026-06-01,2026-06-07,False,,refunds
+Count the number of new users registered in the last 30 days,21.42,COUNT,simple,2026-05-09,2026-06-08,False,,users
+How many active accounts do we currently have,13.211,COUNT,simple,,,False,,accounts
+What are the top 5 transaction types by volume this year,21.722,TOP_N,simple,2026-01-01,2026-12-31,False,,transaction_type
+Find the 3 regions with the highest fraud rates last month,22.493,TOP_N,medium,2026-05-01,2026-05-31,False,,"regions, fraud rates"
+Show accounts without any login activity this year,22.194,SELECT_SUBQUERY,complex,2026-01-01,2026-12-31,False,,"accounts, login activity"
+Users who have not made a purchase in the last quarter,22.405,SELECT,simple,,,True,System processing error: relativedelta.__init__() got an unexpected keyword argument 'quarters',
+total sales,13.885,AGGREGATE,simple,,,False,,sales
+compare the two things,13.223,SELECT,simple,,,False,,things
+What is money?,17.271,SELECT,simple,,,True,This QuerySession only processes queries about business metrics and transactions. I cannot answer general knowledge questions.,
+How to hack a bank account,21.494,SELECT_SUBQUERY,complex,,,True,This QuerySession only processes queries about business metrics and transactions. I cannot assist with hacking activities.,"bank account, hacking"
+How many transactions last month?,20.68,COUNT,simple,2026-05-01,2026-05-31,False,,transactions
+"Show all high-value transactions above 50,000",12.691,SELECT,simple,,,False,,transactions
+Top 10 customers by total transaction amount,14.442,TOP_N,simple,,,False,,"customers, transactions"
+Customers with no transactions in the last 30 daysWhich projects have the highest number of listed assets for lease vs sale?,22.469,SELECT_SUBQUERY,complex,2026-05-09,2026-06-08,False,,"customers, transactions"
+What is the distribution of assets per project and asset type?,15.568,AGGREGATE,complex,,,False,,"assets, project, asset type"
+How many lease listings and sale listings exist for each project?,15.37,AGGREGATE,complex,,,False,,"lease listings, sale listings, project"
+Which project has the highest occupancy rate?,14.019,SELECT,simple,,,False,,"project, occupancy rate"
+What is the average carpet area of assets per project?,15.375,AGGREGATE,medium,,,False,,"carpet area, assets, project"
+Which assets currently have active tenants and which are vacant?,15.913,SELECT,simple,,,False,,"assets, tenants, active, vacant"
+What is the tenant distribution across different projects?,13.42,SELECT,simple,,,False,,"tenant, projects"
+What is the average lease duration per asset type?,14.715,AGGREGATE,simple,,,False,,"lease duration, asset type"
+Which projects have the highest number of tenants?,13.384,SELECT,simple,,,False,,"projects, tenants"
+How many lease transactions occurred per project?,13.374,COUNT,simple,,,False,,"lease transactions, project"
+Which amenities are most common across assets?,14.164,AGGREGATE,medium,,,False,,"amenities, assets"
+What is the distribution of amenities across projects?,13.626,SELECT,simple,,,False,,"amenities, projects"
+Which projects provide the highest number of amenities?,13.263,SELECT,simple,,,False,,"projects, amenities"
+What percentage of assets have premium amenities?,13.964,AGGREGATE,simple,,,False,,"assets, premium amenities"
+Which assets have the highest number of sale negotiations?,13.295,SELECT,simple,,,False,,"assets, sale negotiations"
+What is the conversion rate from sale listing → sale transaction?,13.504,SELECT,simple,,,False,,"sale listing, sale transaction"
+What is the average negotiation duration before a sale transaction?,14.715,AGGREGATE,simple,,,False,,"negotiation duration, sale transaction"
+Which projects generate the highest sale value?,13.984,AGGREGATE,medium,,,False,,"projects, sale value"
+What is the total payment received per project?,13.783,AGGREGATE,simple,,,False,,"payment, project"
+What is the payment trend for lease transactions over time?,13.512,SELECT,simple,,,False,,"payment trend, lease transactions"
+Which tenants contribute the highest rental revenue?,13.772,SELECT,simple,,,False,,"tenants, rental revenue"
+What is the payment method distribution for lease payments?,13.515,SELECT,simple,,,False,,"payment method, lease payments"
+What percentage of assets have completed verification documents?,14.054,AGGREGATE,simple,,,False,,"assets, verification documents"
+Which document types are most commonly submitted?,12.674,SELECT,simple,,,False,,document types
+Which projects have the highest number of verified assets?,13.373,SELECT,simple,,,False,,"projects, verified assets"
+What is the conversion rate from listing leads to tenants?,13.372,SELECT,simple,,,False,,"leads, tenants"
+Which projects generate the most leads?,13.143,SELECT,simple,,,False,,"projects, leads"
+What is the average time taken to convert a lead to a tenant?,14.781,AGGREGATE,simple,,,False,,"lead, tenant, conversion time"
+Which asset type generates the highest revenue?,14.294,AGGREGATE,simple,,,False,,"asset type, revenue"
+What is the distribution of asset types across projects?,13.295,SELECT,simple,,,False,,"asset types, projects"
+What is the average lease value per asset type?,14.229,AGGREGATE,simple,,,False,,"lease value, asset type"

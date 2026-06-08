@@ -65,6 +65,7 @@ class QuerySession:
 
 
     def search_schema(self, user_query, k=5):
+        print("Schema is working")
         query_vector = self.embedder.encode(user_query).tolist()
         results = self.collection.query(query_embeddings=[query_vector], n_results=k)
         return "\n".join(results['documents'][0])

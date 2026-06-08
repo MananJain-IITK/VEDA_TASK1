@@ -8,6 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import calendar
+import csv
 
 class QuerySession:
     def __init__(self, model_name="Qwen/Qwen2.5-Coder-3B-Instruct", timeout_seconds=300):
@@ -115,7 +116,7 @@ class QuerySession:
             # today_str = datetime.now().strftime("%Y-%m-%d")
             
             sys_prompt = f"""
-            You are a SQL query intent parser for a business analytics pipeline. 
+            You are a SQL query intent parser for a business analytics QuerySession. 
 
             <schema>
             Output ONLY a raw JSON object matching this exact schema:
@@ -247,7 +248,7 @@ class QuerySession:
                 "entities": [],
                 "complexity": "simple",
                 "needs_clarification": true,
-                "clarification_reason": "This pipeline only processes queries about business metrics and transactions. I cannot answer general knowledge questions."
+                "clarification_reason": "This QuerySession only processes queries about business metrics and transactions. I cannot answer general knowledge questions."
             }}
 
             </few_shot_examples>
@@ -337,3 +338,111 @@ if __name__ == "__main__":
                 
     except KeyboardInterrupt:
         session.kill_session()
+
+# if __name__ == "__main__":
+#     session = QuerySession(timeout_seconds=600)
+
+#     test_queries = [
+#     "List all customers in the European region",
+#     "Display the transaction history for the fraud department",
+#     "Total fraud amount by transaction type last quarter",
+#     "What is the sum of all international sales this year",
+#     "Show total revenue per customer segment",
+#     "Total refunds processed by the system last week",
+#     "Count the number of new users registered in the last 30 days",
+#     "How many active accounts do we currently have",    
+#     "What are the top 5 transaction types by volume this year",
+#     "Find the 3 regions with the highest fraud rates last month",
+#     "Show accounts without any login activity this year",
+#     "Users who have not made a purchase in the last quarter",
+#     "total sales",               
+#     "compare the two things",    
+#     "What is money?",            
+#     "How to hack a bank account", 
+#     "How many transactions last month?",
+#     "Show all high-value transactions above 50,000",
+#     "Top 10 customers by total transaction amount",
+#     "Customers with no transactions in the last 30 days"
+#     "Which projects have the highest number of listed assets for lease vs sale?",
+#     "What is the distribution of assets per project and asset type?",
+#     "How many lease listings and sale listings exist for each project?",
+#     "Which project has the highest occupancy rate?",
+#     "What is the average carpet area of assets per project?",
+#     "Which assets currently have active tenants and which are vacant?",
+#     "What is the tenant distribution across different projects?",
+#     "What is the average lease duration per asset type?",
+#     "Which projects have the highest number of tenants?",
+#     "How many lease transactions occurred per project?",
+#     "Which amenities are most common across assets?",
+#     "What is the distribution of amenities across projects?",
+#     "Which projects provide the highest number of amenities?",
+#     "What percentage of assets have premium amenities?",
+#     "Which assets have the highest number of sale negotiations?",
+#     "What is the conversion rate from sale listing → sale transaction?",
+#     "What is the average negotiation duration before a sale transaction?",
+#     "Which projects generate the highest sale value?",
+#     "What is the total payment received per project?",
+#     "What is the payment trend for lease transactions over time?",
+#     "Which tenants contribute the highest rental revenue?",
+#     "What is the payment method distribution for lease payments?",
+#     "What percentage of assets have completed verification documents?",
+#     "Which document types are most commonly submitted?",
+#     "Which projects have the highest number of verified assets?",
+#     "What is the conversion rate from listing leads to tenants?",
+#     "Which projects generate the most leads?",
+#     "What is the average time taken to convert a lead to a tenant?",
+#     "Which asset type generates the highest revenue?",
+#     "What is the distribution of asset types across projects?",
+#     "What is the average lease value per asset type?"
+#     ]
+
+#     filename = "First_version_results.csv"
+
+#     headers = [
+#         "Query", 
+#         "Execution_Time_Sec", 
+#         "Intent", 
+#         "Complexity",
+#         "start_date",
+#         "end_date",
+#         "Needs_Clarification",
+#         "Clarification_Reason",
+#         "Entities_Extracted"
+#     ]
+
+#     try:
+#         with open(filename, "w", newline="", encoding="utf-8") as f:
+#             writer = csv.DictWriter(f, fieldnames=headers)
+#             writer.writeheader()
+
+#             for query in test_queries:
+#                 if not session.is_active:
+#                     break
+
+#                 start_time = time.time()
+                
+#                 result = session.understand_query(query)
+#                 duration = time.time() - start_time
+#                 temporal = result.get("temporal_filter") or {}
+#                 entities = result.get("entities", [])
+#                 entities_str = ", ".join(entities) if isinstance(entities, list) else str(entities)
+
+#                 writer.writerow({
+#                     "Query": query,
+#                     "Execution_Time_Sec": round(duration, 3),
+#                     "Intent": result.get("intent", ""),
+#                     "Complexity": result.get("complexity", ""),
+#                     "start_date": temporal.get("start_date", ""),
+#                     "end_date": temporal.get("end_date", ""),
+#                     "Needs_Clarification": result.get("needs_clarification", ""),
+#                     "Clarification_Reason": result.get("clarification_reason", ""),
+#                     "Entities_Extracted": entities_str
+#                 })
+
+#         print(f"Files Saved to: {filename}")
+
+#     except Exception as e:
+#         print(f"\n Error during testing: {e}")
+        
+#     finally:
+#         session.kill_session()
