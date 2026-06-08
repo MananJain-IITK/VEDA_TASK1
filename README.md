@@ -56,7 +56,7 @@ graph TD
     GENERATE -->|Raw String Output| VALIDATE
     
     VALIDATE --> CONDITION
-    CONDITION -- "No (Retry < 3)" -->|Inject Error Feedback| GENERATE
+    CONDITION -- "No (Retry < 3): Inject Error Feedback" --> GENERATE
     CONDITION -- "Yes" --> END_SUCCESS
     CONDITION -- "No (Max Retries Reached)" --> END_FAIL
 
