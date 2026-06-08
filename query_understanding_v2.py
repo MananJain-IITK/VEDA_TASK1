@@ -242,7 +242,7 @@ class LangGraphAgent:
         if state.get("error_message"):
             error_feedback = (
                 f"\n<error_feedback>\n"
-                f"Your previous attempt failed with error: {state['error_message']}. "
+                f"Previous attempt failed with error: {state['error_message']}. "
                 f"Please fix the JSON structure and keys.\n"
                 f"</error_feedback>"
             )
