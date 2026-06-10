@@ -1,0 +1,24 @@
+Query,Execution_Time_Sec,Intent,Complexity,start_date,end_date,Needs_Clarification,Clarification_Reason,Entities_Extracted
+How much carpet did we sell from 01-01-2023 to 30-03-2023,37.236,SELECT,simple,2023-01-01,2023-03-30,False,,assets_saletransaction_history: booking_amount
+How much carpet did we sell from 01-01-2023 to 30-03-2022,38.614,SELECT,simple,2023-01-01,2022-03-30,False,,"assets_saletransaction_history: booking_amount, assets_saletransaction_history: carpet_area"
+List all customers in the European region,15.344,SELECT,simple,,,False,,assets_tenantpreference: region_id
+Display the transaction history for the fraud department,22.005,SELECT,simple,,,False,,"accounts_paymenttransaction_history: id, accounts_paymenttransaction_history: sale_transaction_id, accounts_paymenttransaction_history: history_user_id, accounts_paymenttransaction_history: payment_status_id"
+Total fraud amount by transaction type last quarter,57.953,AGGREGATE,medium,2026-01-01,2026-03-31,False,,"accounts_paymenttransaction_history: balance_amount, accounts_paymenttransaction_history: expected_amount, accounts_paymenttransaction_history: currency_id, accounts_paymenttransaction_history: late_fee, accounts_paymenttransaction_history: paid_amount, accounts_paymenttransaction: balance_amount, accounts_generalledger_history: currency_id, accounts_paymenttransaction: late_fee, accounts_paymenttransaction_history: sale_transaction_id, accounts_userinvoice_history: currency_id, accounts_userinvoiceitem_history: currency_id, accounts_paymenttransaction: currency_id, accounts_generalledger_history: amount, accounts_paymenttransaction: expected_amount, accounts_generalledger_history: payment_transaction_id"
+What is the sum of all international sales this year,26.682,AGGREGATE,medium,2026-01-01,2026-12-31,False,,"assets_salelisting: total_views, services_promotionrule: sale_country_id"
+Show total revenue per customer segment,18.043,AGGREGATE,medium,,,False,,"accounts_userinvoice: total_price, users_markettrend: total_visits"
+Total refunds processed by the system last week,23.159,AGGREGATE,simple,2026-06-01,2026-06-07,False,,accounts_paymenttransaction_history: balance_amount
+Count the number of new users registered in the last 30 days,21.692,COUNT,simple,2026-05-12,2026-06-11,False,,users_user_history: id
+How many active accounts do we currently have,13.815,COUNT,simple,,,False,,accounts_userinvoice.user_id
+What are the top 5 transaction types by volume this year,22.601,TOP_N,medium,2026-01-01,2026-12-31,False,,assets_usersearch: asset_transaction_type
+Find the 3 regions with the highest fraud rates last month,26.021,SELECT,medium,2026-05-01,2026-05-31,False,,"accounts_paymenttransaction_history: payment_attempt_count, users_useraddress_history: country_id"
+Show accounts without any login activity this year,23.2,SELECT,simple,2026-01-01,2026-12-31,False,,users_user_history: last_logout
+Users who have not made a purchase in the last quarter,59.111,SELECT,medium,2026-01-01,2026-03-31,False,,"users_userpreference_history: user_currency_id, accounts_userinvoice_history: late_fee, accounts_userinvoice_history: coins_used, accounts_userinvoiceitem_history: discount, users_userwithdrawal_history: withdrawn_points, accounts_userinvoice: late_fee, accounts_userinvoice_history: currency_id, accounts_userinvoice_history: total_discount, accounts_userinvoice: coins_used, accounts_userinvoiceitem_history: currency_id, users_userpreference_history: financial_year_id, accounts_paymenttransaction_history: late_fee, users_markettrend_history: total_visits, users_usercoin_history: user_points_received, users_usercoin_history: referral_user_points_received"
+total sales,15.953,AGGREGATE,simple,,,False,,assets_salelisting: total_views
+compare the two things,16.924,SELECT_SUBQUERY,simple,,,True,The query is incomplete and lacks specific details about what needs to be compared.,
+What is money?,17.209,,,,,True,"The query is not related to business data. Please provide a query about transactions, customers, sales, fraud, etc.",
+How to hack a bank account,16.304,,,,,True,This query is not related to business data and does not meet the domain requirements.,
+How many transactions last month?,21.235,COUNT,simple,2026-05-01,2026-05-31,False,,accounts_paymenttransaction_history: id
+"Show all high-value transactions above 50,000",13.873,SELECT,simple,,,False,,assets_renttransaction: max_price
+Top 10 customers by total transaction amount,14.448,TOP_N,simple,,,False,,accounts_paymenttransaction: sale_transaction_id
+Customers with no transactions in the last 15 quarters,24.223,SELECT,medium,2022-07-01,2026-03-31,False,,accounts_userinvoice_history: user_id
+Which projects have the highest number of listed assets for lease vs sale?,14.068,SELECT,medium,,,False,,assets_leaselisting: total_views

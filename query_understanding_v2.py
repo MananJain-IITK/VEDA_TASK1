@@ -127,70 +127,71 @@ class LangGraphAgent:
     def calculate_temporal_filter(self, temporal_params: dict) -> dict | None:
         if not temporal_params:
             return None
-
-        now       = datetime.now()
+        
         calc_type = temporal_params.get("type")
-        unit      = temporal_params.get("unit")
+        if calc_type == "explicit_range":
+            return {
+                "start_date" : temporal_params.get("start_date"),
+                "end_date" : temporal_params.get("end_date"),
+            }
+        
+        # print(temporal_params)
+
+        now = datetime.now()
+        unit = temporal_params.get("unit")
         value = int(temporal_params.get("value", 1))
 
-        start_date, end_date = now, now
-
         
-        if unit == "days" and calc_type in ("calendar_last", "calendar_current"):
-            calc_type = "rolling"
 
+        start_date = now
+        end_date = now
+        
         if calc_type == "rolling":
             if unit == "quarters":
                 kwargs = {"months": value * 3}
             else:
                 kwargs = {unit: value}
+                
             start_date = now - relativedelta(**kwargs)
-            end_date   = now
+            end_date = now
 
         elif calc_type in ["calendar_last", "calendar_current"]:
-            offset      = 1 if calc_type == "calendar_last" else 0
-            target_date = now - relativedelta(**{unit: offset})
-
+            if calc_type == "calendar_last":
+                start_offset = value  
+                end_offset = 1        
+            else: 
+                start_offset = 0
+                end_offset = 0
+                
+            
+            start_kwargs = {"months": start_offset * 3} if unit == "quarters" else {unit: start_offset}
+            end_kwargs   = {"months": end_offset * 3}   if unit == "quarters" else {unit: end_offset}
+                
+            target_start_date = now - relativedelta(**start_kwargs)
+            target_end_date   = now - relativedelta(**end_kwargs)
             
             calendar_bounds = {
                 "years": lambda d: (
-                    datetime(d.year, 1, 1),
-                    datetime(d.year, 12, 31, 23, 59, 59),
+                    datetime(d.year, 1, 1), 
+                    datetime(d.year, 12, 31)
                 ),
                 "months": lambda d: (
-                    datetime(d.year, d.month, 1),
-                    datetime(
-                        d.year,
-                        d.month,
-                        calendar.monthrange(d.year, d.month)[1],
-                        23, 59, 59,
-                    ),
+                    datetime(d.year, d.month, 1), 
+                    datetime(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
                 ),
                 "quarters": lambda d: (
                     datetime(d.year, 3 * ((d.month - 1) // 3) + 1, 1),
-                    datetime(
-                        d.year,
-                        3 * ((d.month - 1) // 3) + 3,
-                        calendar.monthrange(
-                            d.year, 3 * ((d.month - 1) // 3) + 3
-                        )[1],
-                        23, 59, 59,
-                    ),
+                    datetime(d.year, 3 * ((d.month - 1) // 3) + 3, calendar.monthrange(d.year, 3 * ((d.month - 1) // 3) + 3)[1])
                 ),
                 "weeks": lambda d: (
-                    datetime(d.year, d.month, d.day) - timedelta(days=d.weekday()),
-                    datetime(d.year, d.month, d.day)
-                    + timedelta(days=6 - d.weekday())
-                    + timedelta(hours=23, minutes=59, seconds=59),
-                ),
-                "days": lambda d: (
-                    datetime(d.year, d.month, d.day),
-                    datetime(d.year, d.month, d.day, 23, 59, 59),
-                ),
-            }
+                    d - timedelta(days=d.weekday()), 
+                    d + timedelta(days=6 - d.weekday()) 
+                )
+            }    
 
             if unit in calendar_bounds:
-                start_date, end_date = calendar_bounds[unit](target_date)
+                start_date = calendar_bounds[unit](target_start_date)[0]
+                end_date   = calendar_bounds[unit](target_end_date)[1]
 
         return {
             "start_date": start_date.strftime("%Y-%m-%d"),
@@ -261,22 +262,36 @@ class LangGraphAgent:
             "intent": "str", // SELECT | COUNT | AGGREGATE | TOP_N | SELECT_SUBQUERY
             "temporal_filter": {{
                 "expression": "str",
-                "type": "str",   // ONLY CHOOSE FROM THIS: rolling=last N units sliding to now | calendar_last=previous full period boundary | calendar_current=current period boundary
-                "unit": "str",   // days | weeks | months | quarters | years  -- use rolling for days ALWAYS
-                "value": int     // N for rolling (e.g. 30 for last 30 days); unused for calendar types
+                "type": "str",   // ONLY CHOOSE FROM THIS: rolling | calendar_last | calendar_current | explicit_range
+                "unit": "str",   // days | weeks | months | quarters | years
+                "value": int,    // N for rolling (e.g. 30). ALWAYS 1 for calendar types.
+                "start_date": "str" | null, // Use YYYY-MM-DD format if explicit_range
+                "end_date": "str" | null    // Use YYYY-MM-DD format if explicit_range
             }} | null,
-            "entities": ["str"], // Business concepts, mapping to tables/columns in context if possible
+            "entities": ["str"], // Refer to "entities_rules" in this system prompt 
             "complexity": "str", // simple | medium | complex
             "needs_clarification": bool,
-            "clarification_reason": "str" | null
+            "clarification_reason": "str" | null // Polite and encouraging if true
         }}
         </schema>
+
+        <entities_rules>
+        1. The entities should be STRICTLY from the "database_schema_context".
+        2. Output should be in the form "table: column".
+        3. If no table/column makes semantic sense with respect to the query, set "needs_clarification": true, and give a clarification_reason.
+        </entities_rules>
 
         <custom_rules>
             1. DOMAIN CHECK: You ONLY process queries about business data (transactions, customers, sales, fraud, etc.). IF the user asks a general knowledge question (e.g., "What is money?"), makes small talk, or asks something outside this domain, you MUST set "needs_clarification": true.
             2. AMBIGUITY: IF the query is incomplete, vague, or fewer than 3 words (except "total sales"), set "needs_clarification": true.
             3. OUTPUT: Output raw JSON only. Do NOT wrap in ```json tags.
-            4. The entities should be STRICTLY from the "database_schema_context".
+            4. TEMPORAL STRICTNESS: 
+               - NEVER convert units. If the user says "quarter", use "unit": "quarters". Do NOT convert to "months".
+               - "type": "calendar_last" represents completed historical periods (e.g., "last month", "last 5 quarters").
+               - "type": "rolling" represents an exact timeframe up to today (e.g., "rolling 90 days", "past 3 months").
+               - For "days", ALWAYS use "type": "rolling".
+               - If the user provides specific dates (e.g., "Jan 1st 2023 to Feb 9th 2024"), use "type": "explicit_range" and format the extracted dates strictly as "YYYY-MM-DD" in the "start_date" and "end_date" fields. Set "unit" and "value" to null.
+               - If "type": "explicit_range", CHECK if the "start_date" is temporaly before the "end_date", if NOT then, set "need_clarificatio": true
         </custom_rules>
 
         <definitions>
@@ -293,6 +308,43 @@ class LangGraphAgent:
             - TOP_N: Top/highest/lowest items.
             - SELECT_SUBQUERY: Complex exclusions like 'no transactions'.
         </definitions>
+
+        <few_shot_examples>
+        Query: "Total fraud amount by transaction type last quarter"
+        "temporal_filter": {{
+            "expression": "last quarter",
+            "type": "calendar_last",
+            "unit": "quarters",
+            "value": 1
+        }}
+
+
+        Query: "Sales for the last 30 days"
+        "temporal_filter": {{
+            "expression": "last 30 days",
+            "type": "rolling",
+            "unit": "days",
+            "value": 30
+        }}
+
+        Query: "Total fraud amount by transaction type last 5 quarters"
+        "temporal_filter": {{
+            "expression": "last 5 quarters",
+            "type": "calendar_last",  
+            "unit": "quarters",
+            "value": 5
+        }}
+
+        Query: "How much carpet did we sell from 01-01-2023 to 09-02-2024"
+        "temporal_filter": {{
+            "expression": "from 01-01-2023 to 09-02-2024",
+            "type": "explicit_range",
+            "unit": null,
+            "value": null,
+            "start_date": "2023-01-01",
+            "end_date": "2024-02-09"
+        }}
+        </few_shot_examples>
         {error_feedback}
         """
 
@@ -425,6 +477,8 @@ if __name__ == "__main__":
 #     pipeline.build_vector_database("./columns_homzhub.csv")
 
 #     test_queries = [
+#     "How much carpet did we sell from 01-01-2023 to 30-03-2023",
+#     "How much carpet did we sell from 01-01-2023 to 30-03-2022",
 #     "List all customers in the European region",
 #     "Display the transaction history for the fraud department",
 #     "Total fraud amount by transaction type last quarter",
@@ -444,41 +498,41 @@ if __name__ == "__main__":
 #     "How many transactions last month?",
 #     "Show all high-value transactions above 50,000",
 #     "Top 10 customers by total transaction amount",
-#     "Customers with no transactions in the last 30 days"
+#     "Customers with no transactions in the last 15 quarters",
 #     "Which projects have the highest number of listed assets for lease vs sale?",
-#     "What is the distribution of assets per project and asset type?",
-#     "How many lease listings and sale listings exist for each project?",
-#     "Which project has the highest occupancy rate?",
-#     "What is the average carpet area of assets per project?",
-#     "Which assets currently have active tenants and which are vacant?",
-#     "What is the tenant distribution across different projects?",
-#     "What is the average lease duration per asset type?",
-#     "Which projects have the highest number of tenants?",
-#     "How many lease transactions occurred per project?",
-#     "Which amenities are most common across assets?",
-#     "What is the distribution of amenities across projects?",
-#     "Which projects provide the highest number of amenities?",
-#     "What percentage of assets have premium amenities?",
-#     "Which assets have the highest number of sale negotiations?",
-#     "What is the conversion rate from sale listing → sale transaction?",
-#     "What is the average negotiation duration before a sale transaction?",
-#     "Which projects generate the highest sale value?",
-#     "What is the total payment received per project?",
-#     "What is the payment trend for lease transactions over time?",
-#     "Which tenants contribute the highest rental revenue?",
-#     "What is the payment method distribution for lease payments?",
-#     "What percentage of assets have completed verification documents?",
-#     "Which document types are most commonly submitted?",
-#     "Which projects have the highest number of verified assets?",
-#     "What is the conversion rate from listing leads to tenants?",
-#     "Which projects generate the most leads?",
-#     "What is the average time taken to convert a lead to a tenant?",
-#     "Which asset type generates the highest revenue?",
-#     "What is the distribution of asset types across projects?",
-#     "What is the average lease value per asset type?"
+#     # "What is the distribution of assets per project and asset type?",
+#     # "How many lease listings and sale listings exist for each project?",
+#     # "Which project has the highest occupancy rate?",
+#     # "What is the average carpet area of assets per project?",
+#     # "Which assets currently have active tenants and which are vacant?",
+#     # "What is the tenant distribution across different projects?",
+#     # "What is the average lease duration per asset type?",
+#     # "Which projects have the highest number of tenants?",
+#     # "How many lease transactions occurred per project?",
+#     # "Which amenities are most common across assets?",
+#     # "What is the distribution of amenities across projects?",
+#     # "Which projects provide the highest number of amenities?",
+#     # "What percentage of assets have premium amenities?",
+#     # "Which assets have the highest number of sale negotiations?",
+#     # "What is the conversion rate from sale listing → sale transaction?",
+#     # "What is the average negotiation duration before a sale transaction?",
+#     # "Which projects generate the highest sale value?",
+#     # "What is the total payment received per project?",
+#     # "What is the payment trend for lease transactions over time?",
+#     # "Which tenants contribute the highest rental revenue?",
+#     # "What is the payment method distribution for lease payments?",
+#     # "What percentage of assets have completed verification documents?",
+#     # "Which document types are most commonly submitted?",
+#     # "Which projects have the highest number of verified assets?",
+#     # "What is the conversion rate from listing leads to tenants?",
+#     # "Which projects generate the most leads?",
+#     # "What is the average time taken to convert a lead to a tenant?",
+#     # "Which asset type generates the highest revenue?",
+#     # "What is the distribution of asset types across projects?",
+#     # "What is the average lease value per asset type?"
 #     ]
 
-#     filename = "LangGraph_results.csv"
+#     filename = "benchmark.csv"
 
 #     headers = [
 #         "Query", 
