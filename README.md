@@ -3,9 +3,10 @@
 This is the Repositry contains the final version of VEDA's first layer, along with previous iterations and essential files.
 The structure for the repo is:
 ```
-├── benchmark.md
+.
+├── benchmark_v2.csv
 ├── chroma_db
-│   ├── 46e175ac-afd3-46dd-a0d5-e14c46009ee4
+│   ├── 875de685-be04-42cc-bc13-30c9e4a38b50
 │   │   ├── data_level0.bin
 │   │   ├── header.bin
 │   │   ├── index_metadata.pickle
@@ -13,16 +14,21 @@ The structure for the repo is:
 │   │   └── link_lists.bin
 │   └── chroma.sqlite3
 ├── columns_homzhub.csv
-├── First_version_results.csv
-├── First_version_results.md
-├── LangGraph_results.csv
-├── LangGraph_results.md
-├── query_understanding_LG.py
-├── query_understanding.py
+├── Previous_versions
+│   ├── query_understanding_LG.py
+│   ├── query_understanding.py
+│   └── test_query_understanding.py
 ├── query_understanding_v2.py
 ├── README.md
 ├── requirements.txt
-└── test_query_understanding.py
+└── Test_results
+    ├── benchmark.csv
+    ├── benchmark.xlsx
+    ├── First_version_results.csv
+    ├── First_version_results.md
+    ├── LangGraph_results.csv
+    └── LangGraph_results.md
+
 
 ```
 
@@ -98,9 +104,11 @@ Hardware Manager | Python threading & gc | Monitors idle time and automatically 
 
 * Lightweight RAG Engine: Prevents Context Window Out-Of-Memory (OOM) errors by using vector search to dynamically inject only the top 15 relevant database schema columns into the SLM prompt.
 
+* Filters unnecesarry id count and meta data to save tokens and prevent hallucinations.
+
 * Lightweight SLM Model: Provides contextually aware output in a specified format using the provided database Schema.
 
-* Temporal Logic Engine: Translates conversational timeframes (e.g., "last quarter", "rolling 30 days") into exact, mathematical YYYY-MM-DD start and end boundaries.
+* Temporal Logic Engine: Translates conversational timeframes (e.g., "last quarter", "rolling 30 days") into exact, mathematical YYYY-MM-DD start and end boundaries. If the query contains exact dates, then the architecture skips the calculations and safe time.
 
 * VRAM Protection: Employs a background daemon thread that monitors user inactivity and safely terminates the HuggingFace models to free up GPU resources.
 
@@ -108,7 +116,7 @@ Hardware Manager | Python threading & gc | Monitors idle time and automatically 
 
 ## Benchmarking
 
-The Repo contains "First_version_results.md" and "LangGraph_results.md" which contains a table used for comparing both the versions of the code, to demonstrate the performance of the final code.
+The Repo contains "benchmarking_v2.csv/xsls" which contains a table containing some test queries and their responses, to demonstrate the performance of the final code.
 
 * From both the Markdown file, it is evident that the new structure is very much aware of the Database Schema giving very accurate results for entities.
 

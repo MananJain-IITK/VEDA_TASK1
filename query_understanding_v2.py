@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from typing import TypedDict, List, Literal
 
 import chromadb
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from sentence_transformers import SentenceTransformer
 from langgraph.graph import StateGraph, START, END
 
@@ -34,6 +34,21 @@ class LangGraphAgent:
         # Vector Model
         print("Loading BAAI")
         self.embedder = SentenceTransformer("BAAI/bge-small-en-v1.5", device="cpu")
+
+        # Query SLM Model
+        # print("Loading Qwen 3B (8-bit Quantized)")
+        # model_id = "Qwen/Qwen2.5-Coder-3B-Instruct"
+        # self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        
+        # bnb_config = BitsAndBytesConfig(
+        #     load_in_8bit=True
+        # )
+
+        # self.llm = AutoModelForCausalLM.from_pretrained(
+        #     model_id,
+        #     quantization_config=bnb_config,
+        #     device_map="cuda:0" 
+        # )
 
         # Query SLM Model
         print("Loading Qwen 3B")
@@ -84,6 +99,24 @@ class LangGraphAgent:
             torch.cuda.empty_cache()
         print("VRAM cleared. Session terminated.")
 
+    # CSV Cleaner
+    def is_semantic_column(self, column_name: str) -> bool:
+        col = column_name.lower().strip()
+        
+        if col == 'id' or col.endswith('_id'):
+            return False
+            
+        # audit_cols = {'created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by'}
+        audit_cols = {'created_by', 'updated_by'}
+        if col in audit_cols:
+            return False
+            
+        system_cols = {'payment_signature', 'other_payment_detail', 'password_hash', 'token'}
+        if col in system_cols:
+            return False
+            
+        return True
+
     #Database/RAG Methods
     def build_vector_database(self, csv_filepath="./columns_homzhub.csv"):
         if self.collection.count() > 0:
@@ -94,7 +127,7 @@ class LangGraphAgent:
         metadata = []
         ids = []
 
-        
+        filtered_count = 0
         with open(csv_filepath, "r") as f:
             reader = csv.reader(f)
             for idx, row in enumerate(reader):
@@ -103,6 +136,10 @@ class LangGraphAgent:
                 table  = row[0].strip()
                 column = row[1].strip()
                 dtype  = row[2].strip()
+
+                if not self.is_semantic_column(column):
+                    filtered_count += 1
+                    continue
                 description = f"Table: {table}. Column: {column}. Dtype: {dtype}."
 
                 documents.append(description)
@@ -112,7 +149,8 @@ class LangGraphAgent:
         if not documents:
             print("WARNING: No valid rows found in CSV. Database not built.")
             return
-
+        
+        print(f"Removed {filtered_count} columns.")
         print("Calculating Embeddings and Saving to ChromaDB")
         embeddings = self.embedder.encode(documents).tolist()
         self.collection.add(
@@ -129,10 +167,32 @@ class LangGraphAgent:
             return None
         
         calc_type = temporal_params.get("type")
-        if calc_type == "explicit_range":
+        
+        if calc_type == "unbounded":
             return {
-                "start_date" : temporal_params.get("start_date"),
-                "end_date" : temporal_params.get("end_date"),
+                "start_date": "1970-01-01", #Random date
+                "end_date": datetime.now().strftime("%Y-%m-%d")
+            }
+        
+        if calc_type == "explicit_range":
+            start_date_str = temporal_params.get("start_date")
+            end_date_str = temporal_params.get("end_date")
+            
+            if not end_date_str or str(end_date_str).lower().strip() == "today":
+                end_date_str = datetime.now().strftime("%Y-%m-%d")
+            if not start_date_str or str(start_date_str).lower().strip() == "today":
+                start_date_str = datetime.now().strftime("%Y-%m-%d")
+                
+            return {
+                "start_date": start_date_str,
+                "end_date": end_date_str
+            }
+        
+        unit = temporal_params.get("unit")
+        if not unit or str(unit).lower() == "none":
+            return {
+                "start_date": "1970-01-01", 
+                "end_date": datetime.now().strftime("%Y-%m-%d")
             }
         
         # print(temporal_params)
@@ -292,6 +352,29 @@ class LangGraphAgent:
                - For "days", ALWAYS use "type": "rolling".
                - If the user provides specific dates (e.g., "Jan 1st 2023 to Feb 9th 2024"), use "type": "explicit_range" and format the extracted dates strictly as "YYYY-MM-DD" in the "start_date" and "end_date" fields. Set "unit" and "value" to null.
                - If "type": "explicit_range", CHECK if the "start_date" is temporaly before the "end_date", if NOT then, set "need_clarificatio": true
+               - **Unbounded / Historical Queries:** If the query asks for trends "over time", "all time", "historical data", or completely lacks a time constraint, you must classify the type as "unbounded" and set all other parameters to null.
+                    Example output:
+                    ```json
+                    {{
+                        "expression": "over time",
+                        "type": "unbounded",
+                        "unit": null,
+                        "value": null,
+                        "start_date": null,
+                        "end_date": null
+                    }}
+                - If a query provides a specific calendar date but pairs it with a relative endpoint like "today" or "now" (e.g., "from 01-01-2022 to today"), you must classify the type as "explicit_range". Use standard YYYY-MM-DD format for the concrete date, and output the literal string "today" for the current boundary.
+                    Example output:
+                    ```json
+
+                    {{
+                    "expression": "from 01-01-2022 to today",
+                    "type": "explicit_range",
+                    "unit": null,
+                    "value": null,
+                    "start_date": "2022-01-01",
+                    "end_date": "today"
+                    }}
         </custom_rules>
 
         <definitions>
@@ -500,39 +583,39 @@ if __name__ == "__main__":
 #     "Top 10 customers by total transaction amount",
 #     "Customers with no transactions in the last 15 quarters",
 #     "Which projects have the highest number of listed assets for lease vs sale?",
-#     # "What is the distribution of assets per project and asset type?",
-#     # "How many lease listings and sale listings exist for each project?",
-#     # "Which project has the highest occupancy rate?",
-#     # "What is the average carpet area of assets per project?",
-#     # "Which assets currently have active tenants and which are vacant?",
-#     # "What is the tenant distribution across different projects?",
-#     # "What is the average lease duration per asset type?",
-#     # "Which projects have the highest number of tenants?",
-#     # "How many lease transactions occurred per project?",
-#     # "Which amenities are most common across assets?",
-#     # "What is the distribution of amenities across projects?",
-#     # "Which projects provide the highest number of amenities?",
-#     # "What percentage of assets have premium amenities?",
-#     # "Which assets have the highest number of sale negotiations?",
-#     # "What is the conversion rate from sale listing → sale transaction?",
-#     # "What is the average negotiation duration before a sale transaction?",
-#     # "Which projects generate the highest sale value?",
-#     # "What is the total payment received per project?",
-#     # "What is the payment trend for lease transactions over time?",
-#     # "Which tenants contribute the highest rental revenue?",
-#     # "What is the payment method distribution for lease payments?",
-#     # "What percentage of assets have completed verification documents?",
-#     # "Which document types are most commonly submitted?",
-#     # "Which projects have the highest number of verified assets?",
-#     # "What is the conversion rate from listing leads to tenants?",
-#     # "Which projects generate the most leads?",
-#     # "What is the average time taken to convert a lead to a tenant?",
-#     # "Which asset type generates the highest revenue?",
-#     # "What is the distribution of asset types across projects?",
-#     # "What is the average lease value per asset type?"
+#     "What is the distribution of assets per project and asset type?",
+#     "How many lease listings and sale listings exist for each project?",
+#     "Which project has the highest occupancy rate?",
+#     "What is the average carpet area of assets per project?",
+#     "Which assets currently have active tenants and which are vacant?",
+#     "What is the tenant distribution across different projects?",
+#     "What is the average lease duration per asset type?",
+#     "Which projects have the highest number of tenants?",
+#     "How many lease transactions occurred per project?",
+#     "Which amenities are most common across assets?",
+#     "What is the distribution of amenities across projects?",
+#     "Which projects provide the highest number of amenities?",
+#     "What percentage of assets have premium amenities?",
+#     "Which assets have the highest number of sale negotiations?",
+#     "What is the conversion rate from sale listing → sale transaction?",
+#     "What is the average negotiation duration before a sale transaction?",
+#     "Which projects generate the highest sale value?",
+#     "What is the total payment received per project?",
+#     "What is the payment trend for lease transactions over time?",
+#     "Which tenants contribute the highest rental revenue?",
+#     "What is the payment method distribution for lease payments?",
+#     "What percentage of assets have completed verification documents?",
+#     "Which document types are most commonly submitted?",
+#     "Which projects have the highest number of verified assets?",
+#     "What is the conversion rate from listing leads to tenants?",
+#     "Which projects generate the most leads?",
+#     "What is the average time taken to convert a lead to a tenant?",
+#     "Which asset type generates the highest revenue?",
+#     "What is the distribution of asset types across projects?",
+#     "What is the average lease value per asset type?"
 #     ]
 
-#     filename = "benchmark.csv"
+#     filename = "benchmark_v2.csv"
 
 #     headers = [
 #         "Query", 

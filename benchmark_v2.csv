@@ -1,0 +1,54 @@
+Query,Execution_Time_Sec,Intent,Complexity,start_date,end_date,Needs_Clarification,Clarification_Reason,Entities_Extracted
+How much carpet did we sell from 01-01-2023 to 30-03-2023,95.358,SELECT,simple,2023-01-01,2023-03-30,False,,"assets_saletransaction_history: booking_amount, assets_saletransaction: booking_amount"
+How much carpet did we sell from 01-01-2023 to 30-03-2022,227.795,SELECT,simple,2023-01-01,2022-03-30,False,,"assets_saletransaction_history: booking_amount, assets_salelisting_history: expected_booking_amount"
+List all customers in the European region,27.666,SELECT,simple,,,False,,assets_customer: region
+Display the transaction history for the fraud department,16.532,SELECT,simple,,,False,,accounts_paymenttransaction_history: paid_amount
+Total fraud amount by transaction type last quarter,34.991,AGGREGATE,medium,2026-01-01,2026-03-31,False,,"accounts_paymenttransaction_history: balance_amount, accounts_paymenttransaction_history: expected_amount, accounts_paymenttransaction_history: late_fee, accounts_paymenttransaction_history: paid_amount"
+What is the sum of all international sales this year,26.384,AGGREGATE,simple,2026-01-01,2026-12-31,False,,assets_salelisting: total_views
+Show total revenue per customer segment,20.434,AGGREGATE,medium,,,False,,"accounts_userinvoice: total_price, users_markettrend: total_visits"
+Total refunds processed by the system last week,26.422,AGGREGATE,simple,2026-06-01,2026-06-07,False,,accounts_paymenttransaction_history: balance_amount
+Count the number of new users registered in the last 30 days,25.566,COUNT,simple,2026-05-13,2026-06-12,False,,users_user_history: date_of_birth
+How many active accounts do we currently have,15.595,COUNT,simple,,,False,,accounts_user: is_active
+What are the top 5 transaction types by volume this year,25.449,TOP_N,medium,2026-01-01,2026-12-31,False,,assets_usersearch: asset_transaction_type
+Find the 3 regions with the highest fraud rates last month,27.629,SELECT,medium,2026-05-01,2026-05-31,False,,"accounts_paymenttransaction_history: payment_attempt_count, accounts_paymenttransaction_history: region"
+Show accounts without any login activity this year,24.374,SELECT,simple,2026-01-01,2026-12-31,False,,users_user_history: last_login
+Users who have not made a purchase in the last quarter,25.907,SELECT,simple,2026-01-01,2026-03-31,False,,users_userwithdrawal_history: withdrawn_points
+total sales,16.309,AGGREGATE,simple,,,False,,assets_salelisting: total_views
+compare the two things,25.588,SELECT_SUBQUERY,simple,,,True,The query is incomplete and lacks specific details about what needs to be compared.,
+What is money?,18.06,,,,,True,"The query is not related to business data. Please provide a query about business transactions, customers, sales, fraud, etc.",
+How to hack a bank account,16.216,,,,,True,This query is not related to business data and does not meet the domain requirements.,
+How many transactions last month?,21.116,COUNT,simple,2026-05-01,2026-05-31,False,,accounts_paymenttransaction_history: late_fee
+"Show all high-value transactions above 50,000",14.34,SELECT,simple,,,False,,assets_saletransaction: booking_amount
+Top 10 customers by total transaction amount,14.212,TOP_N,medium,,,False,,accounts_userinvoice: total_price
+Customers with no transactions in the last 15 quarters,79.411,SELECT,medium,2022-07-01,2026-03-31,False,,"accounts_userinvoice_history: late_fee, accounts_userinvoice: late_fee, accounts_userinvoiceitem_history: no_of_units, accounts_userinvoice_history: late_fee, accounts_userinvoice: late_fee, accounts_userinvoiceitem: no_of_units, accounts_paymenttransaction_history: balance_amount, accounts_userinvoice_history: coins_used, assets_salelisting_history: booking_amount_grace_period, users_usercoin_history: user_points_received, assets_salelisting: booking_amount_grace_period, accounts_paymenttransaction_history: expected_amount, users_usercoin_history: referral_user_points_received, accounts_userinvoice: coins_used, accounts_paymenttransaction_history: payment_attempt_count"
+Which projects have the highest number of listed assets for lease vs sale?,17.749,SELECT,medium,,,False,,"assets_leaselisting: total_views, assets_salelisting: total_views"
+What is the distribution of assets per project and asset type?,16.547,AGGREGATE,medium,,,False,,"assets_project.name, assets_assettype.name"
+How many lease listings and sale listings exist for each project?,17.01,COUNT,simple,,,False,,"assets_leaselisting: total_views, assets_salelisting: total_views"
+Which project has the highest occupancy rate?,14.642,SELECT,simple,,,False,,assets_usersearch: room_count
+What is the average carpet area of assets per project?,17.969,AGGREGATE,medium,,,False,,"assets_carpetareaunit: carpet_area, assets_carpetareaunit: name"
+Which assets currently have active tenants and which are vacant?,36.19,SELECT,simple,,,False,,"assets_leaselistinglead: spaces, assets_leaselistinglead: maintenance_included, assets_leaselistinglead: security_deposit, assets_leaselistinglead: rent_free_period, assets_leaselistinglead: utility_included, assets_leaselistinglead: rental_stay_rating, assets_leaselistinglead: tenantpreference"
+What is the tenant distribution across different projects?,16.166,SELECT,simple,,,False,,assets_tenantpreference: name
+What is the average lease duration per asset type?,16.049,AGGREGATE,simple,,,False,,assets_leasetransaction: lease_period
+Which projects have the highest number of tenants?,15.052,SELECT,simple,,,False,,assets_leaselisting: total_views
+How many lease transactions occurred per project?,16.78,AGGREGATE,medium,,,False,,assets_leasenegotiation_history: proposed_lease_period
+Which amenities are most common across assets?,14.83,AGGREGATE,simple,,,False,,assets_amenity.name
+What is the distribution of amenities across projects?,15.676,AGGREGATE,simple,,,False,,assets_amenity: description
+Which projects provide the highest number of amenities?,15.655,SELECT,simple,,,False,,assets_amenity.description
+What percentage of assets have premium amenities?,16.775,AGGREGATE,simple,,,False,,assets_assetuser: ownership_percentage
+Which assets have the highest number of sale negotiations?,15.858,SELECT,simple,,,False,,assets_salenegotiation: proposed_price
+What is the conversion rate from sale listing → sale transaction?,17.004,AGGREGATE,medium,,,False,,"assets_salelisting: expected_price, assets_saletransaction: price"
+What is the average negotiation duration before a sale transaction?,19.336,AGGREGATE,medium,,,False,,"assets_leasenegotiation_history: negotiation_start_date, assets_leasenegotiation_history: negotiation_end_date"
+Which projects generate the highest sale value?,14.711,SELECT,simple,,,False,,assets_saletransaction: price
+What is the total payment received per project?,17.805,AGGREGATE,medium,,,False,,"accounts_paymenttransaction: expected_amount, accounts_paymenttransaction: paid_amount"
+What is the payment trend for lease transactions over time?,95.413,,,,,,,
+Which tenants contribute the highest rental revenue?,15.912,SELECT,simple,,,False,,assets_leasetenant: rental_stay_rating
+What is the payment method distribution for lease payments?,15.917,AGGREGATE,simple,,,False,,assets_renttransaction.payment_method
+What percentage of assets have completed verification documents?,16.915,AGGREGATE,simple,,,False,,assets_assetverificationdocument_history: is_expired
+Which document types are most commonly submitted?,15.636,SELECT,simple,,,False,,assets_assetverificationdocumenttype: description
+Which projects have the highest number of verified assets?,16.632,SELECT,medium,,,False,,"assets_project: id, assets_asset: verified_at"
+What is the conversion rate from listing leads to tenants?,16.814,AGGREGATE,simple,,,False,,assets_leasenegotiation.annual_rent_increment_percentage
+Which projects generate the most leads?,15.082,SELECT,simple,,,False,,leads_leadstage: stage
+What is the average time taken to convert a lead to a tenant?,17.48,AGGREGATE,medium,,,False,,"leads_lead: assigned_at, leads_lead: history_date"
+Which asset type generates the highest revenue?,15.466,AGGREGATE,simple,,,False,,assets_salelisting.total_views
+What is the distribution of asset types across projects?,18.397,AGGREGATE,medium,,,False,,"assets_project.name, assets_assettype.name"
+What is the average lease value per asset type?,16.644,AGGREGATE,simple,,,False,,assets_leasetransaction: rent
